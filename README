@@ -1,0 +1,8 @@
+This bash script goal is to get, during pentests, a proof of the risk of open/unprotected x11 server.
+
+Based on xwd, this bash script takes pictures on a remote unprotected x11 server.
+Pictures are took on a regular basis until the maximum frame count is reached or until the x11 connection is closed.
+Pictures are assembled as a little movie.
+
+TODO: calculate movie rate based on the delay between snaps.
+TODO: implement range capture (prips ?)
