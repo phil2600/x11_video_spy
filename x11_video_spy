@@ -22,11 +22,9 @@ function doCheck()
 
    for app in $xwd $convert $ffmpeg;
    do
-      if [ ! -x $app ];
-      then
-         echo "Please install $app first..."
-         notfound=$(($notfound+1))
-      fi
+       command -v $app >/dev/null 2>&1 ||
+       { echo >&2 "Please install $app first... Aborting.";
+	   notfound=$(($notfound+1)); }
    done
    if [ 0 -ne $notfound ];
    then
