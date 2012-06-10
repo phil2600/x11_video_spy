@@ -3,15 +3,16 @@
 
 function doHelp()
 {
-   echo "Make videos from unprotected X11 listener"
-   echo
-   echo "Usage: $(basename $0) [-h] [-t delay] [-o outname] [-d display] [-c count]"
-   echo "   -h           display this message and exit"
-   echo "   -t <delay>   delay between capture"
-   echo "   -o <outname> output file name"
-   echo "   -d <display> display number to connect to"
-   echo "   -c <count>   capture count to perfom"
-   echo
+cat <<EOF
+Make videos from unprotected X11 listener
+Usage: $(basename $0) [-h] [-t delay] [-o outname] [-d display] [-c count]
+   -h           display this message and exit
+   -t <delay>   delay between capture
+   -o <outname> output file name
+   -d <display> display number to connect to
+   -c <count>   capture count to perfom
+EOF
+
    exit 0
 }
 
